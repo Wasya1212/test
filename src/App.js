@@ -42,9 +42,20 @@ import {
 } from 'react-jsx-highcharts';
 import { addDataPoint, createDataPoint } from './utils/data-helpers';
 import AppHeader from './components/Header';
-import './App.css';
+import './sass/index.sass';
 
 const maxTablePoints = 25;
+const startedMoney = 100000;
+
+Highcharts.setOptions({
+  chart: {
+    height: (9 / 16 * 70) + '%'
+  }
+});
+
+const calculateProfit = (startedMoney, currentMoney, bitcoinsCount, bitcoinPrice) => {
+  return ((currentMoney + (bitcoinsCount * bitcoinPrice)) - startedMoney).toFixed(2);
+}
 
 class App extends Component {
 
@@ -54,8 +65,9 @@ class App extends Component {
     this.handleStartLiveUpdate = this.handleStartLiveUpdate.bind(this);
     this.handleStopLiveUpdate = this.handleStopLiveUpdate.bind(this);
 
-    const now = Date.now();
     this.state = {
+      user: { username: 'Some User', money: startedMoney, bitcoins_count: 3, profit: 0 },
+      bitcoin: { name: 'BTCUSD', fullName: 'Bitcoin', cost: 0, grow_vector: false },
       data: [],
       liveUpdate: false
     };
@@ -67,7 +79,6 @@ class App extends Component {
 
   updateLiveData () {
     const { data } = this.state;
-    const time = Date.now();
 
     // axios
     //   .post('https://ifyouhavemoneyforbitcoin.herokuapp.com', { time: Date.now() })
@@ -85,7 +96,7 @@ class App extends Component {
     //   });
 
     axios({
-      method: 'post', //you can set what request you want to be
+      method: 'post',
       url: 'http://localhost:5000',
       data: { time: Date.now() },
       headers: {
@@ -93,6 +104,12 @@ class App extends Component {
       }
     })
     .then(({ data: bitcoin }) => {
+      this.setState({
+        bitcoin: Object.assign(this.state.bitcoin, {
+          cost: bitcoin.cost,
+          grow_vector: bitcoin.cost - this.state.bitcoin.cost > 0 ? true : false}),
+        user: Object.assign(this.state.user, { profit: calculateProfit(startedMoney, this.state.user.money, this.state.user.bitcoins_count, bitcoin.cost) })
+      });
       return bitcoin.cost
     })
     .then(bitcoin => {
@@ -110,10 +127,6 @@ class App extends Component {
     .catch(err => {
       console.error(err);
     });
-
-    // this.setState({
-    //   data: addDataPoint(data)
-    // });
   }
 
   handleStartLiveUpdate (e) {
@@ -136,12 +149,18 @@ class App extends Component {
 
     return (
       <div className="app">
-        <AppHeader />
+        <AppHeader user={this.state.user} />
+
+        <section className="App-crypto">
+          <div className="App-user-profit">You earned {this.state.user.profit}</div>
+          <button>Buy Bitcoins</button>
+          <button>Cash out Bitcoins</button>
+        </section>
 
         <HighchartsChart>
           <Chart />
 
-          <Title>Cryptocurrency course</Title>
+          <Title>{`${this.state.bitcoin.name} Course: ${this.state.bitcoin.cost}`}</Title>
 
           <Legend>
             <Legend.Title>Legend</Legend.Title>

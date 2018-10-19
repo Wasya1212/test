@@ -12,14 +12,20 @@ class AppHeader extends Component {
   render() {
     return (
       <header className="App-header">
+        <article className="App-header__App-logo">
+          <a href="/"><img src="/logo.png" alt="logo"/></a>
+        </article>
         <article className="App-header__App-user">
           <div className="App-user-profile">
-            <div className="App-user-profile__money">123421$</div>
+            <div className="App-user-profile__money">{this.props.user.money}</div>
+            <div className="App-user-profile__bitcoins">{this.props.user.bitcoins_count}</div>
             <div className="App-user-profile__info">
               <div className="App-user-profile__picture">
-                <img src="/avatar.png"/>
+                <a href="/"><img src="/avatar.png" alt="avatar"/></a>
               </div>
-              <div className="App-user-profile__username">some user</div>
+              <div className="App-user-profile__username">
+                <a href="/"><span>{this.props.user.username}</span></a>
+              </div>
             </div>
           </div>
         </article>

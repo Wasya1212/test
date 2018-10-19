@@ -1,0 +1,32 @@
+body
+  overflow-x: hidden
+  width: 100vw
+  min-height: 100vh
+  margin: 0
+  padding: 0
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
+
+a
+  display: block
+  height: inherit
+  width: auto
+  color: inherit
+  text-decoration: none
+  &[nohref]
+    cursor: pointer
+
+@import "./variables"
+
+@import "./partials/header"
+@import "./partials/footer"
+
+@import "./theme/highcharts.sass"
+
+@import "./style.sass"
+
+#root
+  min-height: 100vh
+  width: 100%
+  background-color: $additional-bg-color
