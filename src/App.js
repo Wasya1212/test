@@ -1,33 +1,3 @@
-// import React, { Component } from 'react';
-// import logo from './logo.svg';
-// import './App.css';
-//
-// class App extends Component {
-//   render() {
-//     return (
-//       <div className="App">
-//         <header className="App-header">
-//           <img src={logo} className="App-logo" alt="logo" />
-//           <p>
-//             Edit <code>src/App.js</code> and save to reload.
-//           </p>
-//           <a
-//             className="App-link"
-//             href="https://reactjs.org"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//           >
-//             Learn React
-//           </a>
-//         </header>
-//       </div>
-//     );
-//   }
-// }
-//
-// export default App;
-
-
 import React, { Component } from 'react';
 import axios from "axios";
 import Highcharts from 'highcharts';
@@ -42,9 +12,11 @@ import {
 } from 'react-jsx-highcharts';
 import { addDataPoint, createDataPoint } from './utils/data-helpers';
 import AppHeader from './components/Header';
+import AppFooter from './components/Footer';
+import AppTrade from './components/Trade';
 import './sass/index.sass';
 
-const maxTablePoints = 25;
+const maxTablePoints = 50;
 const startedMoney = 100000;
 
 Highcharts.setOptions({
@@ -54,7 +26,7 @@ Highcharts.setOptions({
 });
 
 const calculateProfit = (startedMoney, currentMoney, bitcoinsCount, bitcoinPrice) => {
-  return ((currentMoney + (bitcoinsCount * bitcoinPrice)) - startedMoney).toFixed(2);
+  return ((parseFloat(currentMoney) + (bitcoinsCount * bitcoinPrice)) - startedMoney).toFixed(2);
 }
 
 class App extends Component {
@@ -66,11 +38,14 @@ class App extends Component {
     this.handleStopLiveUpdate = this.handleStopLiveUpdate.bind(this);
 
     this.state = {
-      user: { username: 'Some User', money: startedMoney, bitcoins_count: 3, profit: 0 },
+      user: { username: 'Some User', money: startedMoney, bitcoins_count: 0, profit: 0 },
       bitcoin: { name: 'BTCUSD', fullName: 'Bitcoin', cost: 0, grow_vector: false },
       data: [],
-      liveUpdate: false
+      liveUpdate: false,
+      isOpen: false
     };
+
+    this.modal = null;
   }
 
   componentDidMount () {
@@ -80,24 +55,9 @@ class App extends Component {
   updateLiveData () {
     const { data } = this.state;
 
-    // axios
-    //   .post('https://ifyouhavemoneyforbitcoin.herokuapp.com', { time: Date.now() })
-    //   .then(({ data: bitcoin }) => {
-    //     console.log("sdf", bitcoin);
-    //     return bitcoin.cost
-    //   })
-    //   .then(bitcoin => {
-    //     this.setState({
-    //       data: addDataPoint(data, bitcoin, time)
-    //     });
-    //   })
-    //   .catch(err => {
-    //     console.error(err);
-    //   });
-
     axios({
       method: 'post',
-      url: 'http://localhost:5000',
+      url: '/',
       data: { time: Date.now() },
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -107,7 +67,7 @@ class App extends Component {
       this.setState({
         bitcoin: Object.assign(this.state.bitcoin, {
           cost: bitcoin.cost,
-          grow_vector: bitcoin.cost - this.state.bitcoin.cost > 0 ? true : false}),
+          grow_vector: bitcoin.cost - this.state.bitcoin.cost >= 0 ? true : false}),
         user: Object.assign(this.state.user, { profit: calculateProfit(startedMoney, this.state.user.money, this.state.user.bitcoins_count, bitcoin.cost) })
       });
       return bitcoin.cost
@@ -144,17 +104,65 @@ class App extends Component {
     });
   }
 
+  buyBitcoin = bitcoins_count => {
+    if (bitcoins_count * this.state.bitcoin.cost > this.state.user.money) {
+      alert("Not enaught of money!");
+      return;
+    }
+
+    this.setState({
+      user: Object.assign(this.state.user, {
+        money: parseFloat((this.state.user.money - (bitcoins_count * this.state.bitcoin.cost)).toFixed(2)),
+        bitcoins_count: (parseFloat(this.state.user.bitcoins_count) + parseFloat(bitcoins_count)).toFixed(8)
+      })
+    });
+    this.closeModal();
+  }
+
+  cashOut = money => {
+    if (this.state.user.bitcoins_count - (money / this.state.bitcoin.cost) < 0) {
+      alert("Not enaught of Bitcoins!");
+      return;
+    }
+
+    this.setState({
+      user: Object.assign(this.state.user, {
+        bitcoins_count: (this.state.user.bitcoins_count - parseFloat(money / this.state.bitcoin.cost)).toFixed(8),
+        money: (parseFloat(this.state.user.money) + parseFloat(money)).toFixed(2)
+      })
+    });
+    this.closeModal();
+  }
+
+  showModal = () => {
+    this.setState({
+      isOpen: true
+    });
+  }
+
+  closeModal = () => {
+    this.setState({
+      isOpen: false
+    });
+  }
+
   render() {
     const { data, liveUpdate } = this.state;
 
     return (
       <div className="app">
-        <AppHeader user={this.state.user} />
+        <AppTrade user={this.state.user} bitcoin={this.state.bitcoin} isOpen={this.state.isOpen} closeTradeModal={this.closeModal} buyBitcoin={this.buyBitcoin} cashOut={this.cashOut} ref="modal" />
+
+        <AppHeader user={this.state.user} startTrade={this.showModal} />
 
         <section className="App-crypto">
-          <div className="App-user-profit">You earned {this.state.user.profit}</div>
-          <button>Buy Bitcoins</button>
-          <button>Cash out Bitcoins</button>
+          <div className="App-crypto__user-profit dolar">You earned: <strong>{this.state.user.profit}</strong></div>
+          {!this.state.bitcoin.grow_vector && (
+            <div className="grow-vector grow-vector-down">↓↓↓</div>
+          )}
+          {this.state.bitcoin.grow_vector && (
+            <div className="grow-vector grow-vector-up">↑↑↑</div>
+          )}
         </section>
 
         <HighchartsChart>
@@ -179,13 +187,15 @@ class App extends Component {
         </HighchartsChart>
 
         <div>
-          {!liveUpdate && (
+          {!this.state.liveUpdate && (
             <button className="btn btn-success" onClick={this.handleStartLiveUpdate}>Live update</button>
           )}
-          {liveUpdate && (
+          {this.state.liveUpdate && (
             <button className="btn btn-danger" onClick={this.handleStopLiveUpdate}>Stop update</button>
           )}
         </div>
+
+        <AppFooter />
 
       </div>
     );

@@ -22,6 +22,10 @@ a
 @import "./partials/header"
 @import "./partials/footer"
 
+@import "./modules/crypto-status"
+@import "./modules/modal"
+@import "./modules/trade"
+
 @import "./theme/highcharts.sass"
 
 @import "./style.sass"
@@ -30,3 +34,28 @@ a
   min-height: 100vh
   width: 100%
   background-color: $additional-bg-color
+
+.btn
+  border-radius: 5px
+  padding: .5rem .75rem
+  border: 1px solid darken($btn-bg-color, 30%)
+  background-color: $btn-bg-color
+  color: $btn-text-color
+  font-weight: bold
+  transition: .25s all ease-in-out
+  outline: none
+  &:hover
+    color: $btn-additional-text-color
+    cursor: pointer
+    background-color: $btn-additional-bg-color
+    border-color: darken($btn-additional-bg-color, 30%)
+
+.bitcoin
+  &::after
+    content: '₿'
+    margin-left: 1ch
+
+.dolar
+  &::after
+    content: '$'
+    margin-left: 1ch

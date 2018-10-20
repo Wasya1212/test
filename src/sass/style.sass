@@ -1,28 +1,5 @@
 @import "./variables"
 
-.App-header
-  background-color: $header-bg-color
-  padding: .5rem
-  font-weight: bold
-  position: relative
-  display: -webkit-flex
-  display: -ms-flex
-  display: flex
-  justify-content: space-between
-  align-items: center
-  flex-direction: row
-  flex-wrap: nowrap
-  &__App-user
-    position: relative
-    color: $header-text-color
-  &__App-logo
-    position: relative
-    height: $header-icon-height
-    width: auto
-    img
-      width: auto
-      height: 100%
-
 .App-user-profile
   display: -webkit-flex
   display: -ms-flex
@@ -80,3 +57,6 @@
     span
       text-transform: capitalize
       color: inherit
+
+.btn-danger, .btn-success
+  transform: translate(1rem, calc(-100% - 1rem))
